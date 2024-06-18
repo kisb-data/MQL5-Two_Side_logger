@@ -21,10 +21,8 @@ void OnStart()
    for(int i = 0; i < 100; i++)
      {
       int level_index = MathRand() % 3; 
-      Print(levels[level_index] + " " + IntegerToString(i) + " Python SQL test");
-      Sleep(1000*(level_index+1));
+      Logger.Add(levels[level_index], IntegerToString(/*MathRand()*/i) + " MQL SQL test");
      }
-  
   
    delete Logger;
   }
