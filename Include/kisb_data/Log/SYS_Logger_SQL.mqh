@@ -79,7 +79,7 @@ private:
    void              PrintIt(const string  level, string message);
    string            GetPeriodStr();
    void              AddToBuffer(string message) {ArrayResize(m_buffer, ArraySize(m_buffer)+1); m_buffer[ArraySize(m_buffer)-1]=message;};
-   string            str(string type, string str) {return("('"+"MQL"+"','"+type+"','"+m_ID+"','"+DoubleToString(AccountInfoInteger(ACCOUNT_LOGIN),0)+"','"+TimeToString(TimeCurrent(),TIME_DATE)+"','"+TimeToString(TimeCurrent(),TIME_MINUTES|TIME_SECONDS)+"','"+Symbol()+"','"+GetPeriodStr()+"','"+str+"');");}
+   string            str(string type, string str) ;
 
 public:
    void              CLogger(const string path, const string database, const string table, const string ID, const bool log_SQL, const bool notify, const string print_level="");
@@ -98,7 +98,7 @@ void CLogger::CLogger(const string path, const string database, const string tab
    SQL = new CSQLite(false);
    
    //set print level
-   m_print_level=0;
+   m_print_level=4;
    if(print_level=="Warning")    m_print_level=3;
    if(print_level=="Position")   m_print_level=2;
    if(print_level=="Debug")      m_print_level=1;
@@ -112,8 +112,9 @@ void CLogger::CLogger(const string path, const string database, const string tab
    m_SQL_init=true;
    
    //open create database
-   if(!SQL.OpenCreateDatabase(path, database))
-      {Print("=======>"+"Failed to open database, error:"+DoubleToString(GetLastError(),0)+" ("+database+")");m_SQL_init=false; return;}
+   if(database!="")
+      if(!SQL.OpenCreateDatabase(path, database))
+         {Print("=======>"+"Failed to open database, error:"+DoubleToString(GetLastError(),0)+" ("+database+")");m_SQL_init=false; return;}
 
    //table data
    string cols[9] = {"Source", "Type", "Name", "Account", "Date", "Time", "Symbol", "Period", "Message"};
@@ -123,10 +124,14 @@ void CLogger::CLogger(const string path, const string database, const string tab
    m_cols = "'Source','Type','Name','Account','Date','Time','Symbol','Period','Message'";
 
    //check if table exist, if no,t create
-   SQL.LastErrorReset();
-   if(!SQL.TableExist(table))
-      if(!SQL.CreateTable(table, cols, col_typs))
-         {Print("=======>"+"Failed to create table, error:"+DoubleToString(GetLastError(),0)+" ("+table+")");m_SQL_init=false;}
+
+   if(database!="" && table!="")
+   {
+      SQL.LastErrorReset();
+      if(!SQL.TableExist(table))
+         if(!SQL.CreateTable(table, cols, col_typs))
+            {Print("=======>"+"Failed to create table, error:"+DoubleToString(GetLastError(),0)+" ("+table+")");m_SQL_init=false;}
+   }
   }
 
 /**********************************************************************************************************************
@@ -179,6 +184,20 @@ void CLogger::Add(const string type, string message)
            }
   }
 
+/**********************************************************************************************************************
+   create string message
+**********************************************************************************************************************/
+string CLogger::str(const string type, string message)
+  {
+  
+   string date = TimeToString(TimeCurrent(),TIME_DATE); 
+   StringReplace(date,".","-");
+   string ret ="";
+   
+   ret+="('"+"MQL"+"','"+type+"','"+m_ID+"','"+DoubleToString(AccountInfoInteger(ACCOUNT_LOGIN),0)+"','"+date+"','"+TimeToString(TimeCurrent(),TIME_MINUTES|TIME_SECONDS)+"','"+Symbol()+"','"+GetPeriodStr()+"','"+message+"');";
+   
+   return(ret);
+  }
 /**********************************************************************************************************************
    add rows from buffer
 **********************************************************************************************************************/
