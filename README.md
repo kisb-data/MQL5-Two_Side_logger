@@ -1,4 +1,4 @@
-# LoggerSQL
+# Two side logger
 
 ## About the Project
 If your running application uses several platforms, you may need to follow the process in parallel. Python is well known for its extensive data analysis capabilities and MQL is a widely used trading platform. In this project, I connected the logging methods of the two so that the processes can be followed at the same time. The display is done in Streamlit, and the data is stored in SQLite. Of course, you can connect any platform from which you can save data to SQL.
